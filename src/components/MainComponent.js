@@ -41,12 +41,35 @@ const mapDispatchToProps = (dispatch) => ({
 
 class Main extends Component {
 
+  constructor (props){ //Constructor creado sólo para setear el valor fetched, en la función awaitFetchForRender().
+    super(props);
+    this.state = {
+      fetched: false
+    }
+  }
+
+  awaitFetchForRender = async () => {
+    try {
+      await this.props.fetchDishes();
+      await this.props.fetchComments();
+      await this.props.fetchPromos();
+      await this.props.fetchLeaders();
+      await this.props.fetchFavorites();
+      console.log('set fetchet: ');
+      this.setState({fetched:true});
+    } 
+    catch (error) {
+      console.log('error', error.message);
+    }
+  }
+
   componentDidMount() {
-    this.props.fetchDishes();
-    this.props.fetchComments();
-    this.props.fetchPromos();
-    this.props.fetchLeaders();
-    this.props.fetchFavorites();
+    this.awaitFetchForRender(); //Incorporando los Fetch en una función await, evitamos errores en la recarga de la página.
+    // this.props.fetchDishes();
+    // this.props.fetchComments();
+    // this.props.fetchPromos();
+    // this.props.fetchLeaders();
+    // this.props.fetchFavorites();
   }
 
   render() {
@@ -103,6 +126,10 @@ class Main extends Component {
       )} />
     );
 
+    if(!this.state.fetched){
+      return null;
+    }
+
     return (
       <div>
         <Header auth={this.props.auth} 
@@ -113,7 +140,7 @@ class Main extends Component {
           <CSSTransition key={this.props.location.key} classNames="page" timeout={300}>
             <Switch>
               <Route path="/home" component={HomePage} />
-              <Route exact path='/aboutus' component={() => <About leaders={this.props.leaders} />} />} />
+              <Route exact path='/aboutus' component={() => <About leaders={this.props.leaders} />} />
               <Route exact path="/menu" component={() => <Menu dishes={this.props.dishes} />} />
               <Route path="/menu/:dishId" component={DishWithId} />
               <PrivateRoute exact path="/favorites" component={() => <Favorites favorites={this.props.favorites} deleteFavorite={this.props.deleteFavorite} />} />
